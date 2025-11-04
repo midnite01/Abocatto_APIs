@@ -1,0 +1,73 @@
+type Usuario {
+  id: ID!
+  nombre: String!
+  email: String!
+  rol: String!
+  telefono: String
+  direccion: Direccion
+  activo: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Direccion {
+  calle: String
+  comuna: String
+  ciudad: String
+}
+
+type AuthPayload {
+  token: String!
+  usuario: Usuario!
+}
+
+type Query {
+  # Obtener perfil del usuario autenticado
+  obtenerPerfil: Usuario
+  
+  # Obtener todos los usuarios (solo admin)
+  obtenerUsuarios: [Usuario]
+}
+
+type Mutation {
+  # Registrar nuevo usuario
+  registrarUsuario(
+    nombre: String!
+    email: String!
+    password: String!
+    telefono: String
+    direccion: DireccionInput
+  ): AuthPayload!
+
+  # Login de usuario
+  loginUsuario(
+    email: String!
+    password: String!
+  ): AuthPayload!
+
+    # Editar perfil de usuario
+  actualizarUsuario(
+    nombre: String
+    telefono: String
+    direccion: DireccionInput
+  ): Usuario!
+
+
+  # Cambiar contraseña
+  cambiarPassword(
+    passwordActual: String!
+    nuevoPassword: String!
+  ): Mensaje!
+}
+
+# Agregar este tipo nuevo
+type Mensaje {
+  success: Boolean!
+  message: String!
+}
+
+input DireccionInput {
+  calle: String
+  comuna: String
+  ciudad: String
+}

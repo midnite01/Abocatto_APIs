@@ -1,0 +1,124 @@
+# ==================== TIPOS DE DATOS ====================
+
+type Pedido {
+  id: ID!
+  usuarioId: ID!
+  items: [ItemPedido!]!
+  total: Float!
+  estado: String!
+  tipoEntrega: String!
+  direccionEntrega: DireccionEntrega
+  metodoPago: String!
+  datosPago: DatosPago!
+  numeroBoleta: String
+  tiempoEstimado: Int
+  notas: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ItemPedido {
+  productoId: ID!
+  nombre: String!
+  precio: Float!
+  cantidad: Int!
+  imagen: String
+}
+
+type DireccionEntrega {
+  calle: String!
+  comuna: String!
+  ciudad: String!
+  notas: String
+}
+
+type DatosPago {
+  metodo: String!
+  ultimosDigitos: String
+  transaccionId: String
+}
+
+type PedidoPayload {
+  pedido: Pedido!
+  mensaje: String!
+}
+
+type MensajePedido {
+  success: Boolean!
+  message: String!
+}
+
+# ==================== QUERIES ====================
+
+type Query {
+  # Obtener todos los pedidos (admin) o pedidos del usuario autenticado
+  obtenerPedidos(usuarioId: ID): [Pedido!]
+  
+  # Obtener pedido específico por ID
+  obtenerPedido(id: ID!): Pedido
+  
+  # Obtener pedidos de un usuario específico
+  obtenerPedidosUsuario(usuarioId: ID!): [Pedido!]
+  
+  # Obtener pedidos por estado
+  obtenerPedidosPorEstado(estado: String!): [Pedido!]
+  
+  # Obtener pedidos recientes (últimos 7 días)
+  obtenerPedidosRecientes: [Pedido!]
+}
+
+# ==================== MUTATIONS ====================
+
+type Mutation {
+  # Crear nuevo pedido (después de pago validado)
+  crearPedido(
+    usuarioId: ID!
+    items: [ItemPedidoInput!]!
+    tipoEntrega: String!
+    direccionEntrega: DireccionEntregaInput
+    metodoPago: String!
+    datosPago: DatosPagoInput!
+    notas: String
+  ): PedidoPayload!
+  
+  # Actualizar estado del pedido (admin/repartidor)
+  actualizarEstadoPedido(
+    id: ID!
+    estado: String!
+  ): PedidoPayload!
+  
+  # Cancelar pedido (usuario/admin)
+  cancelarPedido(id: ID!): MensajePedido!
+  
+  # Generar número de boleta para pedido
+  generarBoleta(id: ID!): PedidoPayload!
+  
+  # Actualizar tiempo estimado de entrega
+  actualizarTiempoEstimado(
+    id: ID!
+    tiempoEstimado: Int!
+  ): PedidoPayload!
+}
+
+# ==================== INPUTS ====================
+
+input ItemPedidoInput {
+  productoId: ID!
+  nombre: String!
+  precio: Float!
+  cantidad: Int!
+  imagen: String
+}
+
+input DireccionEntregaInput {
+  calle: String!
+  comuna: String!
+  ciudad: String!
+  notas: String
+}
+
+input DatosPagoInput {
+  metodo: String!
+  ultimosDigitos: String
+  transaccionId: String
+}

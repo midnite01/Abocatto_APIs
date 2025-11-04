@@ -1,0 +1,69 @@
+type Producto {
+  id: ID!
+  nombre: String!
+  descripcion: String!
+  precio: Float!
+  categoria: String!
+  imagen: String
+  stock: Int!
+  disponible: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ProductoPayload {
+  producto: Producto!
+  mensaje: String!
+}
+
+type MensajeProducto {
+  success: Boolean!
+  message: String!
+}
+
+type Query {
+  # Obtener todos los productos (con filtros opcionales)
+  obtenerProductos(categoria: String, disponible: Boolean): [Producto]
+  
+  # Obtener producto por ID
+  obtenerProducto(id: ID!): Producto
+  
+  # Búsqueda de productos por nombre
+  buscarProductos(nombre: String!): [Producto]
+  
+  # Obtener productos por categoría específica
+  obtenerProductosPorCategoria(categoria: String!): [Producto]
+}
+
+type Mutation {
+  # Crear nuevo producto (solo admin)
+  crearProducto(
+    nombre: String!
+    descripcion: String!
+    precio: Float!
+    categoria: String!
+    imagen: String
+    stock: Int
+  ): ProductoPayload!
+  
+  # Actualizar producto existente (solo admin)
+  actualizarProducto(
+    id: ID!
+    nombre: String
+    descripcion: String
+    precio: Float
+    categoria: String
+    imagen: String
+    stock: Int
+    disponible: Boolean
+  ): ProductoPayload!
+  
+  # Eliminar producto (solo admin)
+  eliminarProducto(id: ID!): MensajeProducto!
+  
+  # Actualizar stock del producto (se usará al hacer pedidos)
+  actualizarStock(
+    id: ID!
+    cantidad: Int!
+  ): ProductoPayload!
+}

@@ -1,0 +1,114 @@
+# ==================== TIPOS DE DATOS ====================
+
+type MetodoPago {
+  id: ID!
+  usuarioId: ID!
+  alias: String!
+  datosTarjeta: DatosTarjeta!
+  activo: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type DatosTarjeta {
+  ultimosDigitos: String!
+  tipo: String!
+  mesVencimiento: String!
+  anioVencimiento: String!
+  nombreTitular: String!
+}
+
+type TransaccionPago {
+  id: ID!
+  pedidoId: ID!
+  usuarioId: ID!
+  metodoPago: String!
+  metodoPagoId: ID
+  monto: Float!
+  estado: String!
+  codigoTransaccion: String
+  mensajeError: String
+  datosTransaccion: DatosTransaccion
+  createdAt: String!
+  updatedAt: String!
+}
+
+type DatosTransaccion {
+  idTransaccion: String
+  codigoAutorizacion: String
+  fechaProcesamiento: String
+}
+
+type PagoPayload {
+  transaccion: TransaccionPago!
+  mensaje: String!
+}
+
+type MetodoPagoPayload {
+  metodoPago: MetodoPago!
+  mensaje: String!
+}
+
+type MensajePago {
+  success: Boolean!
+  message: String!
+}
+
+# ==================== QUERIES ====================
+
+type Query {
+  # Obtener métodos de pago del usuario autenticado
+  obtenerMetodosPago: [MetodoPago!]
+  
+  # Obtener transacciones del usuario autenticado
+  obtenerTransaccionesUsuario: [TransaccionPago!]
+  
+  # Obtener transacción específica
+  obtenerTransaccion(id: ID!): TransaccionPago
+  
+  # Obtener transacciones por pedido
+  obtenerTransaccionesPorPedido(pedidoId: ID!): [TransaccionPago!]
+}
+
+# ==================== MUTATIONS ====================
+
+type Mutation {
+  # Procesar pago de un pedido
+  procesarPago(
+    pedidoId: ID!
+    metodoPago: String!
+    datosTarjeta: DatosTarjetaInput
+  ): PagoPayload!
+  
+  # Guardar método de pago (tarjeta)
+  guardarMetodoPago(
+    datosTarjeta: DatosTarjetaInput!
+    alias: String
+  ): MetodoPagoPayload!
+  
+  # Eliminar método de pago guardado
+  eliminarMetodoPago(id: ID!): MensajePago!
+  
+  # Simular respuesta de pago (para pruebas)
+  simularProcesamientoPago(
+    transaccionId: ID!
+    aprobado: Boolean!
+    codigoAutorizacion: String
+  ): PagoPayload!
+}
+
+# ==================== INPUTS ====================
+
+input DatosTarjetaInput {
+  numero: String!           # Número completo (16 dígitos) - no se guarda
+  mesVencimiento: String!   # MM
+  anioVencimiento: String!  # AA
+  cvv: String!              # No se guarda
+  nombreTitular: String!
+}
+
+input DatosTransaccionInput {
+  idTransaccion: String
+  codigoAutorizacion: String
+  fechaProcesamiento: String
+}

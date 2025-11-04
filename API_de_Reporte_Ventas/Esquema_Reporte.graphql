@@ -1,0 +1,137 @@
+# ==================== TIPOS DE DATOS ====================
+
+type ReporteConsolidado {
+  periodo: String!
+  totalVentas: Float!
+  cantidadPedidos: Int!
+  ticketPromedio: Float!
+  crecimiento: Crecimiento!
+  resumenProductos: ResumenProductos!
+  resumenMetodosPago: ResumenMetodoPago!
+  resumenTiposEntrega: ResumenTipoEntrega!
+}
+
+type Crecimiento {
+  porcentaje: Float!
+  tendencia: String!  # positiva, negativa, neutral
+}
+
+type ResumenProductos {
+  totalProductosVendidos: Int!
+  productosUnicos: Int!
+}
+
+type ResumenMetodoPago {
+  metodoMasUsado: String!
+  porcentajeMetodoMasUsado: Float!
+}
+
+type ResumenTipoEntrega {
+  tipoMasUsado: String!
+  porcentajeTipoMasUsado: Float!
+}
+
+type ProductoRanking {
+  productoId: ID!
+  nombre: String!
+  cantidadVendida: Int!
+  totalVentas: Float!
+  porcentajeDelTotal: Float!
+}
+
+type DistribucionMetodoPago {
+  metodo: String!
+  cantidad: Int!
+  porcentaje: Float!
+}
+
+type DistribucionTipoEntrega {
+  tipo: String!
+  cantidad: Int!
+  porcentaje: Float!
+}
+
+type VentasPorDia {
+  fecha: String!
+  ventas: Float!
+}
+
+type DatosGraficos {
+  ventasPorDia: [VentasPorDia!]!
+  topProductos: [ProductoRanking!]!
+  metodosPago: [DistribucionMetodoPago!]!
+  tiposEntrega: [DistribucionTipoEntrega!]!
+}
+
+type ReportePayload {
+  reporte: ReporteConsolidado!
+  mensaje: String!
+}
+
+type DatosGraficosPayload {
+  datos: DatosGraficos!
+  mensaje: String!
+}
+
+type ExportacionPayload {
+  csvData: String!
+  nombreArchivo: String!
+  mensaje: String!
+}
+
+# ==================== QUERIES ====================
+
+type Query {
+  # Reporte consolidado principal
+  obtenerReporteConsolidado(
+    periodo: String = "mes"
+    fechaInicio: String
+    fechaFin: String
+  ): ReportePayload!
+  
+  # Datos estructurados para gráficos
+  obtenerDatosGraficos(
+    periodo: String = "mes"
+    fechaInicio: String
+    fechaFin: String
+  ): DatosGraficosPayload!
+  
+  # Top productos más vendidos
+  obtenerTopProductos(
+    periodo: String = "mes"
+    limite: Int = 10
+    fechaInicio: String
+    fechaFin: String
+  ): [ProductoRanking!]!
+  
+  # Distribución de métodos de pago
+  obtenerDistribucionMetodosPago(
+    periodo: String = "mes"
+    fechaInicio: String
+    fechaFin: String
+  ): [DistribucionMetodoPago!]!
+  
+  # Distribución de tipos de entrega
+  obtenerDistribucionTiposEntrega(
+    periodo: String = "mes"
+    fechaInicio: String
+    fechaFin: String
+  ): [DistribucionTipoEntrega!]!
+}
+
+# ==================== MUTATIONS ====================
+
+type Mutation {
+  # Exportar reporte a CSV (Excel)
+  exportarReporteExcel(
+    periodo: String = "mes"
+    fechaInicio: String
+    fechaFin: String
+  ): ExportacionPayload!
+  
+  # Generar reporte personalizado
+  generarReportePersonalizado(
+    fechaInicio: String!
+    fechaFin: String!
+  ): ReportePayload!
+}
