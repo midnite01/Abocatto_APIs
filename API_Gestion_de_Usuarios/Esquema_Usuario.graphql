@@ -37,6 +37,12 @@ type Mutation {
     password: String!
     telefono: String
     direccion: DireccionInput
+    run: String          
+    sexo: String         
+    fechaNacimiento: String 
+    direccion: DireccionInput
+    region: String       
+    provincia: String    
   ): AuthPayload!
 
   # Login de usuario

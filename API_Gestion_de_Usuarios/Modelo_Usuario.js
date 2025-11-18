@@ -27,6 +27,25 @@ const usuarioSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  run: { 
+    type: String, 
+    trim: true 
+  },
+  sexo: { 
+    type: String, 
+    enum: ['masculino', 'femenino', 'otro', 'prefiero_no_decir'] 
+  },
+  fechaNacimiento: { 
+    type: Date 
+  },
+  region: { 
+    type: String, 
+    trim: true 
+  },
+  provincia: { 
+    type: String, 
+    trim: true 
+  },
   direccion: {
     calle: String,
     comuna: String,

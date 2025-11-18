@@ -27,42 +27,25 @@ const usuarioResolvers = {
   },
 
   Mutation: {
-    registrarUsuario: async (_, { nombre, email, password, telefono, direccion }) => {
-      try {
-        // Verificar si el usuario ya existe
-        const usuarioExistente = await Usuario.findOne({ email });
-        if (usuarioExistente) {
-          throw new Error('El usuario ya está registrado');
-        }
 
-        // Encriptar contraseña
+    registrarUsuario: async (_, { nombre, email, password, telefono, run, sexo, fechaNacimiento, direccion, region, provincia }) => {
+      try {
+        const usuarioExistente = await Usuario.findOne({ email });
+        if (usuarioExistente) throw new Error('El usuario ya está registrado');
+
         const salt = await bcrypt.genSalt(10);
         const passwordEncriptada = await bcrypt.hash(password, salt);
 
-        // Crear nuevo usuario
         const nuevoUsuario = new Usuario({
-          nombre,
-          email,
-          password: passwordEncriptada,
-          telefono,
-          direccion
+          nombre, email, password: passwordEncriptada, telefono,
+          run, sexo, fechaNacimiento, direccion, region, provincia // <--- Agregamos los nuevos
         });
 
-        // Guardar en base de datos
         await nuevoUsuario.save();
 
-        // Crear token JWT
-        const token = jwt.sign(
-          { id: nuevoUsuario._id, rol: nuevoUsuario.rol },
-          process.env.JWT_SECRET,
-          { expiresIn: '7d' }
-        );
+        const token = jwt.sign({ id: nuevoUsuario._id, rol: nuevoUsuario.rol }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        return {
-          token,
-          usuario: nuevoUsuario
-        };
-
+        return { token, usuario: nuevoUsuario };
       } catch (error) {
         throw new Error('Error en registro: ' + error.message);
       }
