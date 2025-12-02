@@ -189,7 +189,7 @@ const productoResolvers = {
           mensaje: `Stock actualizado exitosamente. Nuevo stock: ${productoActualizado.stock}`
         };
 
-      } catch (error) {s
+      } catch (error) {
         throw new Error('Error actualizando stock: ' + error.message);
       }
     }
