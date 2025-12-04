@@ -28,8 +28,8 @@ const productoSchema = new mongoose.Schema({
     type: String,
     required: [true, 'La categoría del producto es obligatoria'],
     enum: {
-      values: ['sandwiches', 'paninis', 'acompañamientos', 'bebibles', 'promos'],
-      message: 'La categoría {VALUE} no es válida. Use: sandwiches, paninis, acompañamientos, bebibles o promos'
+      values: ['sandwiches', 'paninis', 'acompanamientos', 'bebibles', 'promos'],
+      message: 'La categoría {VALUE} no es válida. Use: sandwiches, paninis, acompanamientos, bebibles o promos'
     },
     lowercase: true
   },

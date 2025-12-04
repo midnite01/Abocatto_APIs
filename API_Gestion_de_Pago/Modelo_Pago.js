@@ -30,6 +30,11 @@ const datosTarjetaSchema = new mongoose.Schema({
     required: [true, 'El nombre del titular es obligatorio'],
     trim: true,
     maxlength: [100, 'El nombre no puede tener más de 100 caracteres']
+  },
+  idUsuario: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Usuario',
+    required: [true, 'El ID del usuario es obligatorio']
   }
 });
 
@@ -156,9 +161,16 @@ transaccionPagoSchema.statics.obtenerPorUsuario = function(usuarioId) {
   return this.find({ usuarioId }).sort({ createdAt: -1 });
 };
 
+//Metodo para tarjetas de usuario 
+metodoPagoSchema.statics.obtenerTarjetasPorUsuario = function(usuarioId) {
+  return this.find({ usuarioId, activo: true }).select('datosTarjeta alias createdAt').sort({ createdAt: -1 });
+};
+
 // Crear los modelos
 const MetodoPago = mongoose.model('MetodoPago', metodoPagoSchema);
 const TransaccionPago = mongoose.model('TransaccionPago', transaccionPagoSchema);
+
+
 
 module.exports = {
   MetodoPago,

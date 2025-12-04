@@ -16,6 +16,7 @@ type DatosTarjeta {
   mesVencimiento: String!
   anioVencimiento: String!
   nombreTitular: String!
+  idUsuario: ID!
 }
 
 type TransaccionPago {
@@ -68,7 +69,10 @@ type Query {
   
   # Obtener transacciones por pedido
   obtenerTransaccionesPorPedido(pedidoId: ID!): [TransaccionPago!]
+  
+  # Obtener tarjetas de usuario
 }
+
 
 # ==================== MUTATIONS ====================
 
