@@ -6,9 +6,9 @@ const pagoResolvers = {
   Query: {
     obtenerMetodosPago: async (_, args, context) => {
       try {
-        // TODO: Verificar autenticación (context.usuarioId)
-        // Por ahora usamos un ID hardcodeado para pruebas
-        const usuarioId = "68fa67079780398b05f4f0d1"; // ID de Juan Pérez
+        // CORREGIDO: Usar usuario real
+        if (!context.usuario) throw new Error('No autenticado');
+        const usuarioId = context.usuario.id;
         
         const metodosPago = await MetodoPago.obtenerPorUsuario(usuarioId);
         return metodosPago;
@@ -20,8 +20,9 @@ const pagoResolvers = {
 
     obtenerTransaccionesUsuario: async (_, args, context) => {
       try {
-        // TODO: Verificar autenticación
-        const usuarioId = "68fa67079780398b05f4f0d1";
+        // CORREGIDO: Antes tenía el ID "68fa..."
+        if (!context.usuario) throw new Error('No autenticado');
+        const usuarioId = context.usuario.id;
         
         const transacciones = await TransaccionPago.obtenerPorUsuario(usuarioId);
         return transacciones;
@@ -106,8 +107,9 @@ const pagoResolvers = {
 
     guardarMetodoPago: async (_, { datosTarjeta, alias }, context) => {
       try {
-        // TODO: Verificar autenticación
-        const usuarioId = "68fa67079780398b05f4f0d1";
+        // CORREGIDO: Antes tenía el ID "68fa..."
+        if (!context.usuario) throw new Error('No autenticado');
+        const usuarioId = context.usuario.id;
 
         // Validar datos de tarjeta
         const { esValida, tipo, ultimosDigitos } = validarTarjeta(datosTarjeta);
@@ -154,8 +156,9 @@ const pagoResolvers = {
 
     eliminarMetodoPago: async (_, { id }, context) => {
       try {
-        // TODO: Verificar que el usuario es propietario
-        const usuarioId = "68fa67079780398b05f4f0d1";
+        // CORREGIDO: Antes tenía el ID "68fa..."
+        if (!context.usuario) throw new Error('No autenticado');
+        const usuarioId = context.usuario.id;
 
         const metodoPago = await MetodoPago.findOne({ _id: id, usuarioId });
         if (!metodoPago) {
@@ -232,7 +235,6 @@ const pagoResolvers = {
 // ==================== FUNCIONES AUXILIARES ====================
 
 async function procesarPagoTarjeta(transaccion, datosTarjeta, pedido) {
-  // Validar tarjeta
   const { esValida, tipo, ultimosDigitos } = validarTarjeta(datosTarjeta);
   
   if (!esValida) {
@@ -275,7 +277,6 @@ async function procesarPagoTarjeta(transaccion, datosTarjeta, pedido) {
 }
 
 async function procesarPagoContraEntrega(transaccion, pedido) {
-  // Para contra entrega, siempre se aprueba (se cobra al recibir)
   transaccion.estado = 'aprobado';
   transaccion.datosTransaccion = {
     idTransaccion: `CONTRA_${Date.now()}`,
@@ -283,7 +284,6 @@ async function procesarPagoContraEntrega(transaccion, pedido) {
     fechaProcesamiento: new Date()
   };
 
-  // Actualizar pedido
   pedido.estado = 'confirmado';
   await pedido.save();
   await reducirStockPedido(pedido);
@@ -292,13 +292,11 @@ async function procesarPagoContraEntrega(transaccion, pedido) {
 function validarTarjeta(datosTarjeta) {
   const { numero, mesVencimiento, anioVencimiento, cvv, nombreTitular } = datosTarjeta;
 
-  // Validar número (16 dígitos)
   const numeroLimpio = numero.replace(/\s/g, '');
   if (!/^\d{16}$/.test(numeroLimpio)) {
     return { esValida: false };
   }
 
-  // Validar fecha de vencimiento
   const ahora = new Date();
   const anioActual = ahora.getFullYear() % 100;
   const mesActual = ahora.getMonth() + 1;
@@ -314,17 +312,14 @@ function validarTarjeta(datosTarjeta) {
     return { esValida: false };
   }
 
-  // Validar CVV (3-4 dígitos)
   if (!/^\d{3,4}$/.test(cvv)) {
     return { esValida: false };
   }
 
-  // Validar nombre
   if (!nombreTitular || nombreTitular.trim().length < 2) {
     return { esValida: false };
   }
 
-  // Detectar tipo de tarjeta por el primer dígito
   const primerDigito = numeroLimpio[0];
   let tipo = 'other';
   if (primerDigito === '4') tipo = 'visa';

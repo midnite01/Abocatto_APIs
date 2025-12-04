@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const { readFileSync } = require('fs');
 const path = require('path');
+const jwt = require('jsonwebtoken'); // <--- NUEVO: Importamos JWT para validar
 require('dotenv').config();
 
 const app = express();
@@ -43,7 +44,7 @@ const pagoTypeDefs = readFileSync(
   'utf-8'
 );
 
-// 5. API de Reporte de Ventas (NUEVA - ÚLTIMA API)
+// 5. API de Reporte de Ventas
 const reporteResolvers = require('./API_de_Reporte_Ventas/Resolvers_Reporte');
 const reporteTypeDefs = readFileSync(
   path.join(__dirname, 'API_de_Reporte_Ventas/Esquema_Reporte.graphql'),
@@ -69,12 +70,45 @@ async function startServer() {
   const server = new ApolloServer({
     typeDefs,
     resolvers,
+    // ==================== CORRECCIÓN DE SEGURIDAD (FASE 4) ====================
+    // Aquí es donde leemos la "pulsera" del usuario
     context: ({ req }) => {
-      // Aquí podemos agregar autenticación después
-      return { req };
+      // 1. Obtener el token de los headers
+      const token = req.headers.authorization || '';
+      
+      // 2. Inicializar contexto base
+      let usuarioContexto = null;
+
+      // 3. Si hay token, intentamos verificarlo
+      if (token) {
+        try {
+            // Limpiamos "Bearer " si viene incluido (por si acaso)
+            const tokenLimpio = token.replace('Bearer ', '');
+            
+            // Verificamos la firma con nuestra clave secreta
+            const usuarioDecodificado = jwt.verify(tokenLimpio, process.env.JWT_SECRET);
+            
+            // ¡ÉXITO! El usuario es real. Lo guardamos en el contexto.
+            usuarioContexto = usuarioDecodificado;
+            
+        } catch (error) {
+            // Si el token es falso o expiró, solo lo logueamos, pero no rompemos la app.
+            // El usuario quedará como "null" (visitante).
+            console.warn('⚠️ Token inválido o expirado:', error.message);
+        }
+      }
+
+      // 4. Retornar el contexto enriquecido
+      // Ahora 'context.usuario' estará disponible en TODOS los resolvers.
+      // context.usuario.id -> El ID real de Gabriel
+      // context.usuario.rol -> El Rol real
+      return { 
+          req, 
+          usuario: usuarioContexto 
+      };
     },
+    // ==========================================================================
     formatError: (error) => {
-      // Formatear errores para el cliente
       console.error('GraphQL Error:', error);
       return {
         message: error.message,
@@ -104,7 +138,7 @@ async function startServer() {
     console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
     console.log(`🕸️  GraphQL Playground: http://localhost:${PORT}/graphql`);
     console.log(`📦 APIs activas: Usuarios, Productos, Pedidos, Pagos, Reportes`);
-    console.log(`🎉 ¡BACKEND COMPLETO - 5/5 APIs IMPLEMENTADAS!`);
+    console.log(`🛡️  SISTEMA DE SEGURIDAD: ACTIVO (Token Reading Enabled)`);
   });
 }
 
