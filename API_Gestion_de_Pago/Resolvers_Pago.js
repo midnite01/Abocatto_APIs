@@ -53,11 +53,20 @@ const pagoResolvers = {
       } catch (error) {
         throw new Error('Error obteniendo transacciones del pedido: ' + error.message);
       }
+    },
+
+    obtenerTarjetasPorUsuario: async (_, {usuarioId}) => {
+      try {
+        const tarjetas = await MetodoPago.find({ usuarioId }).sort({ createdAt: -1 });
+        return tarjetas;
+      } catch (error) {
+        throw new Error('Error obteniendo tarjetas del usuario: ' + error.message);
+      }
     }
   },
 
   Mutation: {
-    procesarPago: async (_, { pedidoId, metodoPago, datosTarjeta }) => {
+    procesarPago: async (_, { pedidoId, metodoPago, datosTarjeta, guardarTarjeta }) => {
       try {
         // 1. Validar que el pedido existe y está pendiente
         const pedido = await Pedido.findById(pedidoId);
@@ -88,7 +97,13 @@ const pagoResolvers = {
 
         // 4. Procesar según método de pago
         if (metodoPago === 'tarjeta') {
-          await procesarPagoTarjeta(transaccion, datosTarjeta, pedido);
+          await procesarPagoTarjeta(
+            transaccion, 
+            datosTarjeta, 
+            pedido,
+            guardarTarjeta,  // Nuevo parámetro (viene del frontend)
+            context               // Nuevo parámetro
+          );        
         } else if (metodoPago === 'contraentrega') {
           await procesarPagoContraEntrega(transaccion, pedido);
         }
@@ -106,10 +121,10 @@ const pagoResolvers = {
     },
 
     guardarMetodoPago: async (_, { datosTarjeta, alias }, context) => {
+      // El usuarioId viene del context (del JWT), no del cliente
+      if (!context.usuario) throw new Error('No autenticado');
+      const usuarioId = context.usuario.id;
       try {
-        // CORREGIDO: Antes tenía el ID "68fa..."
-        if (!context.usuario) throw new Error('No autenticado');
-        const usuarioId = context.usuario.id;
 
         // Validar datos de tarjeta
         const { esValida, tipo, ultimosDigitos } = validarTarjeta(datosTarjeta);
@@ -232,8 +247,84 @@ const pagoResolvers = {
   }
 };
 
-// ==================== FUNCIONES AUXILIARES ====================
 
+async function procesarPagoTarjeta(
+  transaccion, 
+  datosTarjeta, 
+  pedido,
+  guardarTarjeta = false,  // Nuevo parámetro
+  context = null           // Nuevo parámetro
+) {
+  const { esValida, tipo, ultimosDigitos } = validarTarjeta(datosTarjeta);
+  
+  if (!esValida) {
+    transaccion.estado = 'rechazado';
+    transaccion.mensajeError = 'Datos de tarjeta inválidos';
+    return;
+  }
+
+  const exito = Math.random() < 0.8;
+
+  if (exito) {
+    transaccion.estado = 'aprobado';
+    transaccion.datosTransaccion = {
+      idTransaccion: `TXN_${Date.now()}`,
+      codigoAutorizacion: `AUTH_${Math.random().toString(36).substr(2, 9)}`,
+      fechaProcesamiento: new Date()
+    };
+
+    // ✅ NUEVO: Guardar tarjeta si el usuario lo solicitó
+    if (guardarTarjeta && context && context.usuario) {
+      try {
+        const tarjetaExistente = await MetodoPago.findOne({
+          usuarioId: pedido.usuarioId,
+          'datosTarjeta.ultimosDigitos': ultimosDigitos,
+          activo: true
+        });
+
+        if (!tarjetaExistente) {
+          const metodoPago = new MetodoPago({
+            usuarioId: pedido.usuarioId,
+            alias: 'Mi Tarjeta',
+            datosTarjeta: {
+              ultimosDigitos,
+              tipo,
+              mesVencimiento: datosTarjeta.mesVencimiento,
+              anioVencimiento: datosTarjeta.anioVencimiento,
+              nombreTitular: datosTarjeta.nombreTitular,
+              usuarioId: pedido.usuarioId
+            }
+          });
+          await metodoPago.save();
+          console.log('✅ Tarjeta guardada en la base de datos');
+        }
+      } catch (error) {
+        console.warn('⚠️ Error guardando tarjeta:', error.message);
+        // No rompemos el flujo si falla guardar la tarjeta
+      }
+    }
+
+    const metodoPago = await MetodoPago.findOne({
+      usuarioId: pedido.usuarioId,
+      'datosTarjeta.ultimosDigitos': ultimosDigitos,
+      activo: true
+    });
+
+    if (metodoPago) {
+      transaccion.metodoPagoId = metodoPago._id;
+    }
+
+    pedido.estado = 'confirmado';
+    await pedido.save();
+    await reducirStockPedido(pedido);
+
+  } else {
+    transaccion.estado = 'rechazado';
+    transaccion.mensajeError = 'Pago rechazado por el procesador';
+  }
+}
+// ==================== FUNCIONES AUXILIARES ====================
+/*
 async function procesarPagoTarjeta(transaccion, datosTarjeta, pedido) {
   const { esValida, tipo, ultimosDigitos } = validarTarjeta(datosTarjeta);
   
@@ -274,7 +365,7 @@ async function procesarPagoTarjeta(transaccion, datosTarjeta, pedido) {
     transaccion.estado = 'rechazado';
     transaccion.mensajeError = 'Pago rechazado por el procesador';
   }
-}
+}*/
 
 async function procesarPagoContraEntrega(transaccion, pedido) {
   transaccion.estado = 'aprobado';

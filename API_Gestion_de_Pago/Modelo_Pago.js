@@ -31,7 +31,7 @@ const datosTarjetaSchema = new mongoose.Schema({
     trim: true,
     maxlength: [100, 'El nombre no puede tener más de 100 caracteres']
   },
-  idUsuario: {
+  usuarioId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Usuario',
     required: [true, 'El ID del usuario es obligatorio']
