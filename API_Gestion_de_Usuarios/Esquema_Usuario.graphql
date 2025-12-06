@@ -5,6 +5,7 @@ type Usuario {
   rol: String!
   telefono: String
   direccion: Direccion
+  puntos:Int #
   activo: Boolean!
   createdAt: String!
   updatedAt: String!
@@ -53,6 +54,7 @@ type Mutation {
     # Editar perfil de usuario
   actualizarUsuario(
     nombre: String
+    email: String #
     telefono: String
     direccion: DireccionInput
   ): Usuario!

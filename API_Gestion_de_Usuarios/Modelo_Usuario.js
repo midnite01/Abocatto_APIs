@@ -46,6 +46,10 @@ const usuarioSchema = new mongoose.Schema({
     type: String, 
     trim: true 
   },
+  puntos: {
+      type: Number,
+      default: 10
+    },
   direccion: {
     calle: String,
     comuna: String,

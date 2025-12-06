@@ -144,11 +144,17 @@ const usuarioResolvers = {
         // CORREGIDO: Usar usuario real del token (contexto)
         if (!context.usuario) throw new Error('No autenticado');
         const usuarioId = context.usuario.id;
+
+        if (email) {
+            const emailOcupado = await Usuario.findOne({ email, _id: { $ne: usuarioId } });
+            if (emailOcupado) throw new Error('Este correo electrónico ya está en uso por otro usuario');
+        }
         
         const usuarioActualizado = await Usuario.findByIdAndUpdate(
           usuarioId,
           {
             ...(nombre && { nombre }),
+            ...(email && { email }),
             ...(telefono && { telefono }),
             ...(direccion && { direccion })
           },
