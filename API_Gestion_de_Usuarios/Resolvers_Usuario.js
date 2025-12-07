@@ -139,7 +139,7 @@ const usuarioResolvers = {
     },
 
     // Actualizar datos del perfil (nombre, teléfono, dirección)
-    actualizarUsuario: async (_, { nombre, telefono, direccion }, context) => {
+    actualizarUsuario: async (_, { nombre, email, telefono, direccion }, context) => {
       try {
         // CORREGIDO: Usar usuario real del token (contexto)
         if (!context.usuario) throw new Error('No autenticado');
