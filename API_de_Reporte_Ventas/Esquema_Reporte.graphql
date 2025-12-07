@@ -17,8 +17,8 @@ type Crecimiento {
 }
 
 type ResumenProductos {
-  totalProductosVendidos: Int!
-  productosUnicos: Int!
+  topProductoNombre: String
+  topProductoCantidad: Int
 }
 
 type ResumenMetodoPago {

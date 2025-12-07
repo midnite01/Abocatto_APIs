@@ -222,13 +222,35 @@ class ReporteService {
   }
 
   static calcularResumenProductos(pedidos) {
-    const totalProductos = pedidos.reduce((sum, pedido) => 
-      sum + pedido.items.reduce((itemSum, item) => itemSum + item.cantidad, 0), 0
-    );
+    let productosMap = pedidos.map(pedido => pedido.items).flat();
     
+    productosMap = productosMap.map(item => ({
+      productoId: item.productoId.toString(),
+      nombre: item.nombre || 'Producto desconocido', // Fallback si no hay nombre
+      cantidad: item.cantidad
+    }));
+
+    let totalesProductos = {};
+    productosMap.forEach(item => {
+      if (totalesProductos[item.productoId]) {
+        totalesProductos[item.productoId].cantidad += item.cantidad;
+      } else {
+        totalesProductos[item.productoId] = { nombre: item.nombre, cantidad: item.cantidad };
+      }
+    });
+    productosMap = Object.values(totalesProductos);
+    
+    if (productosMap.length === 0) {
+      return {
+        topProductoNombre: 'Sin ventas',
+        topProductoCantidad: 0
+      };
+    }
+
+    const topProducto = productosMap.reduce((max, item) => item.cantidad > max.cantidad ? item : max);
     return {
-      totalProductosVendidos: totalProductos,
-      productosUnicos: new Set(pedidos.flatMap(p => p.items.map(i => i.productoId.toString()))).size
+      topProductoNombre: topProducto.nombre || 'Producto desconocido', // Fallback adicional
+      topProductoCantidad: topProducto.cantidad
     };
   }
 
