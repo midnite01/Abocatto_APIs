@@ -46,6 +46,7 @@ type PedidoPayload {
 type MensajePedido {
   success: Boolean!
   message: String!
+  pedido: Pedido
 }
 
 # ==================== QUERIES ====================

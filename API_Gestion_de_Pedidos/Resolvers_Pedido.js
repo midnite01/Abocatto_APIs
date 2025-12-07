@@ -163,9 +163,9 @@ const pedidoResolvers = {
       }
     },
 
-    cancelarPedido: async (_, { id }) => {
+    cancelarPedido: async (_, { pedidoId }) => {
       try {
-        const pedido = await Pedido.findById(id);
+        const pedido = await Pedido.findById(pedidoId);
         if (!pedido) {
           throw new Error('Pedido no encontrado');
         }
@@ -175,17 +175,19 @@ const pedidoResolvers = {
           throw new Error('No se puede cancelar el pedido en su estado actual');
         }
 
-        await Pedido.findByIdAndUpdate(id, { estado: 'cancelado' });
+        await Pedido.findByIdAndUpdate(pedidoId, { estado: 'cancelado' });
 
         return {
           success: true,
-          message: 'Pedido cancelado exitosamente'
+          message: 'Pedido cancelado exitosamente',
+          pedido: await Pedido.findById(pedidoId)
         };
 
       } catch (error) {
         return {
           success: false,
-          message: 'Error cancelando pedido: ' + error.message
+          message: 'Error cancelando pedido: ' + error.message,
+          pedido: undefined
         };
       }
     },

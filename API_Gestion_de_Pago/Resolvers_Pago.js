@@ -66,8 +66,9 @@ const pagoResolvers = {
   },
 
   Mutation: {
-    procesarPago: async (_, { pedidoId, metodoPago, datosTarjeta, guardarTarjeta }) => {
-      try {
+    procesarPago: async (_, { pedidoId, metodoPago, datosTarjeta, guardarTarjeta }, context) => {
+    // ✅ AHORA context está disponible
+    try {
         // 1. Validar que el pedido existe y está pendiente
         const pedido = await Pedido.findById(pedidoId);
         if (!pedido) {
@@ -92,7 +93,6 @@ const pagoResolvers = {
           estado: 'procesando'
         });
 
-        // Generar código de transacción único
         transaccion.generarCodigoTransaccion();
 
         // 4. Procesar según método de pago
@@ -101,8 +101,8 @@ const pagoResolvers = {
             transaccion, 
             datosTarjeta, 
             pedido,
-            guardarTarjeta,  // Nuevo parámetro (viene del frontend)
-            context               // Nuevo parámetro
+            guardarTarjeta,
+            context  // ✅ AHORA SÍ EXISTE
           );        
         } else if (metodoPago === 'contraentrega') {
           await procesarPagoContraEntrega(transaccion, pedido);
@@ -153,7 +153,8 @@ const pagoResolvers = {
             tipo,
             mesVencimiento: datosTarjeta.mesVencimiento,
             anioVencimiento: datosTarjeta.anioVencimiento,
-            nombreTitular: datosTarjeta.nombreTitular
+            nombreTitular: datosTarjeta.nombreTitular,
+            usuarioId: usuarioId
           }
         });
 
