@@ -25,6 +25,8 @@ type AuthPayload {
 type Query {
   # Obtener perfil del usuario autenticado
   obtenerPerfil: Usuario
+
+  obtenerUsuario(id: ID!): Usuario
   
   # Obtener todos los usuarios (solo admin)
   obtenerUsuarios: [Usuario]

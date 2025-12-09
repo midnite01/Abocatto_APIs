@@ -199,7 +199,7 @@ pedidoSchema.methods.generarNumeroBoleta = function() {
 
 // Método para verificar si se puede cancelar
 pedidoSchema.methods.puedeCancelar = function() {
-  const estadosCancelables = ['pendiente', 'confirmado'];
+  const estadosCancelables = ['pendiente', 'confirmado', 'en_preparacion' ];
   return estadosCancelables.includes(this.estado);
 };
 
@@ -211,6 +211,20 @@ pedidoSchema.statics.obtenerPorUsuario = function(usuarioId) {
 // Método estático para obtener pedidos por estado
 pedidoSchema.statics.obtenerPorEstado = function(estado) {
   return this.find({ estado }).sort({ createdAt: -1 });
+};
+
+// Método estático para obtener pedidos por estado con populate
+pedidoSchema.statics.obtenerPorEstadoConUsuario = function(estado) {
+  return this.find({ estado })
+    .populate('usuarioId', 'nombre email telefono')
+    .sort({ createdAt: -1 });
+};
+
+// Método estático para obtener todos los pedidos con usuario
+pedidoSchema.statics.obtenerTodosConUsuario = function() {
+  return this.find({})
+    .populate('usuarioId', 'nombre email telefono')
+    .sort({ createdAt: -1 });
 };
 
 // Crear el modelo

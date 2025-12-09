@@ -25,7 +25,17 @@ const usuarioResolvers = {
         throw new Error('Error obteniendo perfil: ' + error.message);
       }
     },
-    
+    obtenerUsuario: async (_, { id }) => {
+      try {
+        const usuario = await Usuario.findById(id);
+        if (!usuario) {
+          throw new Error('Usuario no encontrado');
+        }
+        return usuario;
+      } catch (error) {
+        throw new Error('Error obteniendo usuario: ' + error.message);
+      }
+    },
     // Obtener lista de todos los usuarios (Generalmente para uso interno/admin)
     obtenerUsuarios: async () => {
       try {

@@ -1,8 +1,15 @@
 # ==================== TIPOS DE DATOS ====================
 
+type Usuario {
+  id: ID!
+  nombre: String
+  email: String!
+  telefono: String
+}
+
 type Pedido {
   id: ID!
-  usuarioId: ID!
+  usuarioId: Usuario!           # ← CAMBIO: Ahora es un objeto Usuario, no un ID
   items: [ItemPedido!]!
   total: Float!
   estado: String!

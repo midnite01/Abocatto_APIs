@@ -3,29 +3,30 @@ const Pedido = require('./Modelo_Pedido');
 const pedidoResolvers = {
   Query: {
     obtenerPedidos: async (_, { usuarioId }) => {
-      try {
-        let filtro = {};
-        
-        // Si se proporciona usuarioId, filtrar por usuario
-        // Si no, devolver todos (para admin)
-        if (usuarioId) {
-          filtro.usuarioId = usuarioId;
+        try {
+            if (usuarioId) {
+                // Si se proporciona usuarioId, filtrar por usuario
+                const pedidos = await Pedido.find({ usuarioId })
+                    .populate('usuarioId', 'nombre email telefono')
+                    .sort({ createdAt: -1 })
+                    .limit(100);
+                return pedidos;
+            } else {
+                // Si no, devolver todos (para admin) - usar método estático
+                return await Pedido.obtenerTodosConUsuario();
+            }
+        } catch (error) {
+            throw new Error('Error obteniendo pedidos: ' + error.message);
         }
-        
-        const pedidos = await Pedido.find(filtro)
-          .sort({ createdAt: -1 })
-          .limit(100); // Limitar para no sobrecargar
-        
-        return pedidos;
-        
-      } catch (error) {
-        throw new Error('Error obteniendo pedidos: ' + error.message);
-      }
     },
 
     obtenerPedido: async (_, { id }) => {
       try {
-        const pedido = await Pedido.findById(id);
+
+        const pedido = await Pedido.findById(id)
+          .populate('usuarioId', 'nombre email telefono')
+          .sort({ createdAt: -1 })
+          .limit(100);
         if (!pedido) {
           throw new Error('Pedido no encontrado');
         }
@@ -48,7 +49,8 @@ const pedidoResolvers = {
 
     obtenerPedidosPorEstado: async (_, { estado }) => {
       try {
-        const pedidos = await Pedido.obtenerPorEstado(estado);
+        const pedidos = await Pedido.obtenerPorEstado(estado)
+        .populate('usuarioId', 'nombre email telefono'); // ← AGREGAR POPULATE
         return pedidos;
         
       } catch (error) {
@@ -163,9 +165,9 @@ const pedidoResolvers = {
       }
     },
 
-    cancelarPedido: async (_, { pedidoId }) => {
+    cancelarPedido: async (_, { id }) => {
       try {
-        const pedido = await Pedido.findById(pedidoId);
+        const pedido = await Pedido.findById(id);
         if (!pedido) {
           throw new Error('Pedido no encontrado');
         }
@@ -175,12 +177,12 @@ const pedidoResolvers = {
           throw new Error('No se puede cancelar el pedido en su estado actual');
         }
 
-        await Pedido.findByIdAndUpdate(pedidoId, { estado: 'cancelado' });
+        await Pedido.findByIdAndUpdate(id, { estado: 'cancelado' });
 
         return {
           success: true,
           message: 'Pedido cancelado exitosamente',
-          pedido: await Pedido.findById(pedidoId)
+          pedido: await Pedido.findById(id)
         };
 
       } catch (error) {
