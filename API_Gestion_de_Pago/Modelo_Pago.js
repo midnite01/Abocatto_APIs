@@ -5,7 +5,7 @@ const datosTarjetaSchema = new mongoose.Schema({
   ultimosDigitos: {
     type: String,
     required: [true, 'Los últimos 4 dígitos son obligatorios'],
-    match: [/^\d{4}$/, 'Deben ser exactamente 4 dígitos']
+    match: [/^\d{16}$/, 'Deben ser exactamente 16 dígitos']
   },
   tipo: {
     type: String,
@@ -35,6 +35,11 @@ const datosTarjetaSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Usuario',
     required: [true, 'El ID del usuario es obligatorio']
+  },
+  cvv: {
+    type: String,
+    required: [true, 'El CVV es obligatorio'],
+    match: [/^\d{3}$/, 'CVV debe ser 3 dígitos']
   }
 });
 

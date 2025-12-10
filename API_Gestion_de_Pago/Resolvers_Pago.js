@@ -154,7 +154,8 @@ const pagoResolvers = {
             mesVencimiento: datosTarjeta.mesVencimiento,
             anioVencimiento: datosTarjeta.anioVencimiento,
             nombreTitular: datosTarjeta.nombreTitular,
-            usuarioId: usuarioId
+            usuarioId: usuarioId,
+            cvv: datosTarjeta.cvv
           }
         });
 
@@ -421,7 +422,7 @@ function validarTarjeta(datosTarjeta) {
   return {
     esValida: true,
     tipo,
-    ultimosDigitos: numeroLimpio.slice(-4)
+    ultimosDigitos: numeroLimpio
   };
 }
 

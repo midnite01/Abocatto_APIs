@@ -17,6 +17,7 @@ type DatosTarjeta {
   anioVencimiento: String!
   nombreTitular: String!
   usuarioId: ID!
+  cvv: String!
 }
 
 type TransaccionPago {
